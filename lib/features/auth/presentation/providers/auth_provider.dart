@@ -1,15 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:buddget/features/auth/data/repositories/auth_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:buddget/features/auth/domain/models/user.dart';
 
-part 'auth_provider.g.dart';
+final authStateProvider = StreamProvider<User?>((ref) {
+  // For now, we'll just return a stream that emits null
+  return Stream.value(null);
+});
 
-@riverpod
-Stream<User?> authState(StreamProviderRef ref) {
-  return ref.watch(authRepositoryProvider).authStateChanges;
-}
-
-@riverpod
-User? currentUser(ProviderRef ref) {
-  return ref.watch(authRepositoryProvider).currentUser;
-} 
+final currentUserProvider = Provider<User?>((ref) {
+  return ref.watch(authStateProvider).value;
+}); 

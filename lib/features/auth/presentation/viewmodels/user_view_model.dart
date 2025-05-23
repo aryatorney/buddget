@@ -1,57 +1,47 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:buddget/features/auth/data/repositories/user_repository.dart';
 import 'package:buddget/features/auth/domain/models/user.dart';
 
+// Mock user data
+final mockUser = User(
+  id: 'mock_user_id',
+  name: 'John Doe',
+  email: 'john@example.com',
+  photoUrl: null,
+  isDarkMode: false,
+  groupIds: ['group1', 'group2'],
+  totalBalances: {
+    'group1': 150.0,
+    'group2': -75.0,
+  },
+);
+
 final userViewModelProvider = StateNotifierProvider<UserViewModel, AsyncValue<User?>>((ref) {
-  return UserViewModel(UserRepository());
+  return UserViewModel();
 });
 
 class UserViewModel extends StateNotifier<AsyncValue<User?>> {
-  final UserRepository _repository;
+  UserViewModel() : super(const AsyncValue.data(null));
 
-  UserViewModel(this._repository) : super(const AsyncValue.loading()) {
-    loadCurrentUser();
+  void signIn() {
+    state = AsyncValue.data(mockUser);
   }
 
-  Future<void> loadCurrentUser() async {
-    try {
-      state = const AsyncValue.loading();
-      // In a real app, you'd get the current user's ID from auth service
-      final user = await _repository.get('current_user_id');
-      state = AsyncValue.data(user);
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
+  void signOut() {
+    state = const AsyncValue.data(null);
   }
 
-  Future<void> updateUserBalance(String groupId, double amount) async {
-    try {
-      if (state.value == null) return;
-      await _repository.updateBalance(state.value!.id, groupId, amount);
-      await loadCurrentUser();
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
-  }
-
-  Future<void> joinGroup(String groupId) async {
-    try {
-      if (state.value == null) return;
-      await _repository.addToGroup(state.value!.id, groupId);
-      await loadCurrentUser();
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
-  }
-
-  Future<void> toggleDarkMode() async {
-    try {
-      if (state.value == null) return;
-      final newValue = !state.value!.isDarkMode;
-      await _repository.updateDarkMode(state.value!.id, newValue);
-      await loadCurrentUser();
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
+  void toggleDarkMode() {
+    if (state.value != null) {
+      final updatedUser = User(
+        id: state.value!.id,
+        name: state.value!.name,
+        email: state.value!.email,
+        photoUrl: state.value!.photoUrl,
+        isDarkMode: !state.value!.isDarkMode,
+        groupIds: state.value!.groupIds,
+        totalBalances: state.value!.totalBalances,
+      );
+      state = AsyncValue.data(updatedUser);
     }
   }
 

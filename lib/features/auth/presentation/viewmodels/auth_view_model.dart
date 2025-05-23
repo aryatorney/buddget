@@ -1,14 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:buddget/features/auth/data/repositories/auth_repository.dart';
 
-part 'auth_view_model.g.dart';
+final authViewModelProvider = StateNotifierProvider<AuthViewModel, AsyncValue<User?>>((ref) {
+  return AuthViewModel(ref);
+});
 
-@riverpod
-class AuthViewModel extends AutoDisposeAsyncNotifier<User?> {
-  @override
-  Future<User?> build() async {
-    return ref.watch(authRepositoryProvider).currentUser;
+class AuthViewModel extends StateNotifier<AsyncValue<User?>> {
+  final Ref ref;
+
+  AuthViewModel(this.ref) : super(const AsyncValue.data(null)) {
+    state = AsyncValue.data(ref.read(authRepositoryProvider).currentUser);
   }
 
   Future<void> signInWithEmail(String email, String password) async {
@@ -23,14 +25,6 @@ class AuthViewModel extends AutoDisposeAsyncNotifier<User?> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await ref.read(authRepositoryProvider).signUpWithEmail(email, password);
-      return ref.read(authRepositoryProvider).currentUser;
-    });
-  }
-
-  Future<void> signInWithGoogle() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      await ref.read(authRepositoryProvider).signInWithGoogle();
       return ref.read(authRepositoryProvider).currentUser;
     });
   }

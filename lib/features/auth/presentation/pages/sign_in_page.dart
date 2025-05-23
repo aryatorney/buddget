@@ -37,15 +37,6 @@ class _SignInPageState extends ConsumerState<SignInPage> {
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() => _isLoading = true);
-    try {
-      await ref.read(authViewModelProvider.notifier).signInWithGoogle();
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -119,17 +110,12 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _signInWithEmail,
                   child: _isLoading
-                      ? const CircularProgressIndicator()
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Text('Sign In'),
-                ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _isLoading ? null : _signInWithGoogle,
-                  icon: Image.asset(
-                    'assets/icons/google_logo.png',
-                    height: 24,
-                  ),
-                  label: const Text('Sign in with Google'),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
@@ -137,6 +123,13 @@ class _SignInPageState extends ConsumerState<SignInPage> {
                     // TODO: Navigate to sign up page
                   },
                   child: const Text('Don\'t have an account? Sign up'),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () {
+                    // TODO: Navigate to forgot password page
+                  },
+                  child: const Text('Forgot Password?'),
                 ),
               ],
             ),

@@ -6,6 +6,42 @@ import 'package:buddget/features/auth/presentation/viewmodels/user_view_model.da
 class GroupsPage extends ConsumerWidget {
   const GroupsPage({super.key});
 
+  void _showCreateGroupDialog(BuildContext context, WidgetRef ref) {
+    final nameController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create New Group'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: 'Group Name',
+            hintText: 'Enter group name',
+          ),
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (nameController.text.trim().isNotEmpty) {
+                ref.read(groupViewModelProvider.notifier).createGroup(
+                  nameController.text.trim(),
+                );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groupsState = ref.watch(groupViewModelProvider);
@@ -14,22 +50,34 @@ class GroupsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Groups'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // TODO: Show create group dialog
-            },
-          ),
-        ],
+        actions: userState.value != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => _showCreateGroupDialog(context, ref),
+                ),
+              ]
+            : null,
       ),
       body: groupsState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (groups) {
           if (groups.isEmpty) {
-            return const Center(
-              child: Text('No groups yet. Create one to get started!'),
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('No groups yet.'),
+                  if (userState.value != null) ...[
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => _showCreateGroupDialog(context, ref),
+                      child: const Text('Create a Group'),
+                    ),
+                  ],
+                ],
+              ),
             );
           }
 

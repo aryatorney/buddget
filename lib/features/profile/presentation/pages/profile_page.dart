@@ -12,13 +12,50 @@ class ProfilePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        actions: userState.value != null
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () {
+                    ref.read(userViewModelProvider.notifier).signOut();
+                  },
+                ),
+              ]
+            : null,
       ),
       body: userState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (user) {
           if (user == null) {
-            return const Center(child: Text('User not found'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircleAvatar(
+                    radius: 50,
+                    child: Icon(Icons.person, size: 50),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Guest User',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Sign in to access your profile',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.read(userViewModelProvider.notifier).signIn();
+                    },
+                    child: const Text('Sign In'),
+                  ),
+                ],
+              ),
+            );
           }
 
           return ListView(
@@ -26,15 +63,10 @@ class ProfilePage extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: user.photoUrl != null
-                    ? NetworkImage(user.photoUrl!)
-                    : null,
-                child: user.photoUrl == null
-                    ? Text(
-                        user.name[0].toUpperCase(),
-                        style: const TextStyle(fontSize: 32),
-                      )
-                    : null,
+                child: Text(
+                  user.name[0].toUpperCase(),
+                  style: const TextStyle(fontSize: 32),
+                ),
               ),
               const SizedBox(height: 16),
               Text(
@@ -72,8 +104,8 @@ class ProfilePage extends ConsumerWidget {
                       .toStringAsFixed(2),
                   style: TextStyle(
                     color: user.totalBalances.values
-                                .fold(0.0, (sum, amount) => sum + amount) >=
-                            0
+                            .fold(0.0, (sum, amount) => sum + amount) >=
+                        0
                         ? Colors.green
                         : Colors.red,
                     fontWeight: FontWeight.bold,
